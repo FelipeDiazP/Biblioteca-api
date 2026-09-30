@@ -265,7 +265,7 @@ El objetivo principal es aplicar los conceptos estudiados en clase relacionados 
 
 Proyecto desarrollado bajo la modalidad establecida para la asignatura:
 
-* Individual o en parejas.
+* Individual.
 * Repositorio Git con el código fuente.
 * README con la documentación del proyecto.
 * Historial de commits durante el desarrollo.
