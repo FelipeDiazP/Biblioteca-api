@@ -120,6 +120,41 @@ router.get("/", asyncHandler(controller.findAll));
  */
 router.get("/:id", asyncHandler(controller.findById));
 
+/**
+ * @swagger
+ * /api/v1/authors/{id}/books:
+ *   get:
+ *     summary: Obtener los libros de un autor
+ *     tags:
+ *       - Authors
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del autor
+ *         schema:
+ *           type: string
+ *         example: "66f123abc456def789"
+ *     responses:
+ *       200:
+ *         description: Lista de libros pertenecientes al autor
+ *         content:
+ *           application/json:
+ *             example:
+ *               - _id: "66abc123456def789"
+ *                 title: "Cien años de soledad"
+ *                 isbn: "9780307474728"
+ *                 authorId: "66f123abc456def789"
+ *                 year: 1967
+ *                 available: true
+ *                 createdAt: "2026-09-26T16:00:00.000Z"
+ *                 updatedAt: "2026-09-26T16:00:00.000Z"
+ *       400:
+ *         description: ID inválido
+ *       404:
+ *         description: Autor no encontrado
+ */
+router.get("/:id/books", asyncHandler(controller.findBooksByAuthor));
 
 /**
  * @swagger

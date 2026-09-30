@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import { Author, AuthorDTO } from "./author.model";
+import { Book } from "../book/book.model";
 import { AuthorRepository } from "./author.repository";
 import { BadRequestError, NotFoundError } from "../../shared/errors/AppError";
 import { getDb } from "../../config/database";
@@ -70,6 +71,14 @@ export class AuthorService {
 
         const deleted = await this.authorRepository.delete(objectId);
         if (!deleted) throw new NotFoundError("Autor no encontrado");
+    }
+
+    async findBooksByAuthor(id: string): Promise<Book[]> {
+        const objectId = this.toObjectId(id);
+        const author = await this.authorRepository.findById(objectId);
+        if (!author) throw new NotFoundError("Autor no encontrado");
+
+        return getDb().collection<Book>("books").find({ authorId: objectId }).toArray();
     }
 
     private requireString(value: unknown, field: string): string {
