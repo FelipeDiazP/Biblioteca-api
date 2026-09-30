@@ -1,22 +1,24 @@
 # 📚 Biblioteca API
 
-API REST para la **gestión de una Biblioteca**, desarrollada como proyecto de la asignatura de Programación III.
+API REST para la gestión de una Biblioteca, desarrollada como proyecto de la asignatura de Programación III.
 
-El proyecto permite administrar **autores, libros y préstamos**, aplicando una arquitectura por capas y buenas prácticas de desarrollo de APIs REST.
+El proyecto está construido utilizando Node.js, Express, TypeScript y MongoDB, implementando una arquitectura modular y separando las responsabilidades de la aplicación.
 
 ## 🚀 Tecnologías
 
-* **Node.js**
-* **Express 5**
-* **TypeScript**
-* **MongoDB**
-* **MongoDB Driver**
-* **Swagger / OpenAPI**
-* **dotenv**
+- Node.js
+- Express 5
+- TypeScript
+- MongoDB
+- MongoDB Driver
+- Swagger / OpenAPI
+- dotenv
+
+---
 
 ## 🏗️ Arquitectura
 
-El proyecto utiliza una arquitectura por capas:
+El proyecto está organizado mediante una arquitectura por capas y módulos:
 
 ```text
 Routes
@@ -42,36 +44,24 @@ Cada capa tiene una responsabilidad específica:
 ```text
 biblioteca-api/
 │
+├── node_modules/
+│
 ├── src/
 │   ├── api/
-│   │   └── v1/
-│   │       ├── authors/
-│   │       │   ├── author.controller.ts
-│   │       │   ├── author.repository.ts
-│   │       │   ├── author.routes.ts
-│   │       │   └── author.service.ts
-│   │       │
-│   │       ├── books/
-│   │       │   ├── book.controller.ts
-│   │       │   ├── book.repository.ts
-│   │       │   ├── book.routes.ts
-│   │       │   └── book.service.ts
-│   │       │
-│   │       └── loans/
-│   │           ├── loan.controller.ts
-│   │           ├── loan.repository.ts
-│   │           ├── loan.routes.ts
-│   │           └── loan.service.ts
-│   │
 │   ├── config/
-│   │   └── database.ts
-│   │
+│   ├── modules/
+│   │   └── author/
+│   ├── shared/
+│   ├── app.ts
 │   └── server.ts
 │
+├── .env
 ├── .env.example
+├── .gitignore
+├── package-lock.json
 ├── package.json
-├── tsconfig.json
-└── README.md
+├── README.md
+└── tsconfig.json
 ```
 
 > La estructura puede variar ligeramente dependiendo de la organización final del proyecto.
