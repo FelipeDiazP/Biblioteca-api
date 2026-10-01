@@ -1,97 +1,185 @@
 import { ObjectId } from "mongodb";
-import { Loan, LoanDTO } from "./loan.model";
 import { LoanRepository } from "./loan.repository";
 import { BadRequestError, NotFoundError } from "../../shared/errors/AppError";
+import { Loan, LoanDTO } from "./loan.model";
 import { getDb } from "../../config/database";
 
 export class LoanService {
-    private readonly loanRepository = new LoanRepository();
+  private loanRepository: LoanRepository;
 
-    async create(data: LoanDTO): Promise<Loan> {
-        const bookIdStr = this.requireString(data?.bookId, "bookId");
-        const userName = this.requireString(data?.userName, "userName");
-        const bookId = this.toObjectId(bookIdStr);
+  constructor() {
+    this.loanRepository = new LoanRepository();
+  }
 
-        const booksCol = getDb().collection("books");
-        const book = await booksCol.findOne({ _id: bookId });
-
-        if (!book) throw new NotFoundError("El libro especificado no existe");
-
-        if (!book.available) {
-            throw new BadRequestError("El libro solicitado no está disponible para préstamo");
-        }
-
-        const now = new Date();
-        const loanDate = data.loanDate ? new Date(data.loanDate) : now;
-
-        const loan = await this.loanRepository.create({
-            bookId,
-            userName,
-            loanDate,
-            returned: false,
-            createdAt: now,
-            updatedAt: now,
-        });
-
-        await booksCol.updateOne({ _id: bookId }, { $set: { available: false, updatedAt: now } });
-
-        return loan;
+  private requireString(value: unknown, field: string): string {
+    if (typeof value !== "string" || value.trim().length === 0) {
+      throw new BadRequestError(`El campo '${field}' es obligatorio`);
     }
 
-    async findAll(activeOnly?: boolean): Promise<Loan[]> {
-        const filter: Record<string, unknown> = {};
-        if (activeOnly) {
-            filter.returned = false;
-        }
-        return this.loanRepository.findAll(filter);
+    return value.trim();
+  }
+
+  private toObjectId(value: string, field: string): ObjectId {
+    if (!ObjectId.isValid(value)) {
+      throw new BadRequestError(`El campo '${field}' no contiene un ID válido`);
     }
 
-    async findById(id: string): Promise<Loan> {
-        const loan = await this.loanRepository.findById(this.toObjectId(id));
-        if (!loan) throw new NotFoundError("Préstamo no encontrado");
-        return loan;
+    return new ObjectId(value);
+  }
+
+  async create(data: LoanDTO): Promise<Loan> {
+    const bookIdStr = this.requireString(data?.bookId, "bookId");
+
+    const userIdStr = this.requireString(data?.userId, "userId");
+
+    const bookId = this.toObjectId(bookIdStr, "bookId");
+    const userId = this.toObjectId(userIdStr, "userId");
+
+    const booksCol = getDb().collection("books");
+    const usersCol = getDb().collection("users");
+
+    const user = await usersCol.findOne({
+      _id: userId,
+    });
+
+    if (!user) {
+      throw new NotFoundError("El usuario especificado no existe");
     }
 
-    async update(id: string, data: LoanDTO): Promise<Loan> {
-        const objectId = this.toObjectId(id);
-        const existingLoan = await this.loanRepository.findById(objectId);
-        if (!existingLoan) throw new NotFoundError("Préstamo no encontrado");
+    const book = await booksCol.findOne({
+      _id: bookId,
+    });
 
-        const changes: Partial<Loan> = {};
-        const now = new Date();
-
-        if (data.userName !== undefined) changes.userName = this.requireString(data.userName, "userName");
-
-        if (data.returned === true && !existingLoan.returned) {
-            changes.returned = true;
-            changes.returnDate = now;
-
-            await getDb().collection("books").updateOne(
-                { _id: existingLoan.bookId },
-                { $set: { available: true, updatedAt: now } }
-            );
-        }
-
-        changes.updatedAt = now;
-        const updated = await this.loanRepository.update(objectId, changes);
-        if (!updated) throw new NotFoundError("Préstamo no encontrado");
-        return updated;
+    if (!book) {
+      throw new NotFoundError("El libro especificado no existe");
     }
 
-    async delete(id: string): Promise<void> {
-        const deleted = await this.loanRepository.delete(this.toObjectId(id));
-        if (!deleted) throw new NotFoundError("Préstamo no encontrado");
+    if (!book.available) {
+      throw new BadRequestError(
+        "El libro solicitado no está disponible para préstamo",
+      );
     }
 
-    private requireString(value: unknown, field: string): string {
-        if (typeof value !== "string" || value.trim() === "") {
-            throw new BadRequestError(`El campo '${field}' es obligatorio`);
-        }
-        return value.trim();
+    const now = new Date();
+
+    let loanDate = now;
+
+    if (data.loanDate) {
+      const parsedDate = new Date(data.loanDate);
+
+      if (isNaN(parsedDate.getTime())) {
+        throw new BadRequestError(
+          "El campo 'loanDate' no contiene una fecha válida",
+        );
+      }
+
+      loanDate = parsedDate;
     }
 
-    private toObjectId(id: string): ObjectId {
-        if (!ObjectId.isValid(id)) throw new BadRequestError(`Identificador inválido: ${id}`);
-        return new ObjectId(id);
+    const loan = await this.loanRepository.create({
+      bookId,
+      userId,
+      loanDate,
+      returned: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await booksCol.updateOne(
+      {
+        _id: bookId,
+      },
+      {
+        $set: {
+          available: false,
+          updatedAt: now,
+        },
+      },
+    );
+
+    return loan;
+  }
+
+  async findAll(): Promise<Loan[]> {
+    return await this.loanRepository.findAll();
+  }
+
+  async findById(id: string): Promise<Loan> {
+    const loan = await this.loanRepository.findById(id);
+
+    if (!loan) {
+      throw new NotFoundError("El préstamo no existe");
     }
+
+    return loan;
+  }
+
+  async returnLoan(id: string): Promise<Loan> {
+    const loan = await this.loanRepository.findById(id);
+
+    if (!loan) {
+      throw new NotFoundError("El préstamo no existe");
+    }
+
+    if (loan.returned) {
+      throw new BadRequestError("El préstamo ya fue devuelto");
+    }
+
+    const now = new Date();
+
+    const updatedLoan = await this.loanRepository.update(id, {
+      returned: true,
+      returnDate: now,
+      updatedAt: now,
+    });
+
+    if (!updatedLoan) {
+      throw new NotFoundError("El préstamo no existe");
+    }
+
+    const booksCol = getDb().collection("books");
+
+    await booksCol.updateOne(
+      {
+        _id: loan.bookId,
+      },
+      {
+        $set: {
+          available: true,
+          updatedAt: now,
+        },
+      },
+    );
+
+    return updatedLoan;
+  }
+
+  async delete(id: string): Promise<void> {
+    const loan = await this.loanRepository.findById(id);
+
+    if (!loan) {
+      throw new NotFoundError("El préstamo no existe");
+    }
+
+    const deleted = await this.loanRepository.delete(id);
+
+    if (!deleted) {
+      throw new NotFoundError("El préstamo no existe");
+    }
+    if (!loan.returned) {
+      const booksCol = getDb().collection("books");
+
+      await booksCol.updateOne(
+        {
+          _id: loan.bookId,
+        },
+        {
+          $set: {
+            available: true,
+            updatedAt: new Date(),
+          },
+        },
+      );
+    }
+  }
 }

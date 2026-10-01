@@ -2,35 +2,70 @@ import { Collection, ObjectId } from "mongodb";
 import { getDb } from "../../config/database";
 import { Loan } from "./loan.model";
 
+
 export class LoanRepository {
-    private collection(): Collection<Loan> {
-        return getDb().collection<Loan>("loans");
+  private collection(): Collection<Loan> {
+    return getDb().collection<Loan>("loans");
+  }
+
+  async create(data: Omit<Loan, "_id">): Promise<Loan> {
+    const result = await this.collection().insertOne(data as Loan);
+
+    return {
+      _id: result.insertedId,
+      ...data,
+    };
+  }
+
+  async findAll(): Promise<Loan[]> {
+    return await this.collection().find().toArray();
+  }
+
+  async findById(id: string): Promise<Loan | null> {
+    if (!ObjectId.isValid(id)) {
+      return null;
     }
 
-    async create(data: Omit<Loan, "_id">): Promise<Loan> {
-        const result = await this.collection().insertOne(data as Loan);
-        return { _id: result.insertedId, ...data };
+    return await this.collection().findOne({
+      _id: new ObjectId(id),
+    });
+  }
+
+  async update(
+    id: string,
+    data: Partial<Omit<Loan, "_id">>,
+  ): Promise<Loan | null> {
+    if (!ObjectId.isValid(id)) {
+      return null;
     }
 
-    async findAll(filter: Record<string, unknown> = {}): Promise<Loan[]> {
-        return this.collection().find(filter).sort({ createdAt: -1 }).toArray();
+    const result = await this.collection().findOneAndUpdate(
+      {
+        _id: new ObjectId(id),
+      },
+      {
+        $set: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      },
+      {
+        returnDocument: "after",
+      },
+    );
+
+    return result;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    if (!ObjectId.isValid(id)) {
+      return false;
     }
 
-    async findById(id: ObjectId): Promise<Loan | null> {
-        return this.collection().findOne({ _id: id });
-    }
+    const result = await this.collection().deleteOne({
+      _id: new ObjectId(id),
+    });
 
-    async update(id: ObjectId, changes: Partial<Loan>): Promise<Loan | null> {
-        const result = await this.collection().findOneAndUpdate(
-            { _id: id },
-            { $set: changes },
-            { returnDocument: "after" }
-        );
-        return result ?? null;
-    }
-
-    async delete(id: ObjectId): Promise<boolean> {
-        const result = await this.collection().deleteOne({ _id: id });
-        return result.deletedCount === 1;
-    }
+    return result.deletedCount > 0;
+  }
 }

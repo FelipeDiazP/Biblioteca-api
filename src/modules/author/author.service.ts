@@ -18,6 +18,14 @@ export class AuthorService {
             }
         }
 
+        const existingAuthor = await this.authorRepository.findByName(name)
+
+        if (existingAuthor) {
+            throw new BadRequestError(
+                `El autor '${name}' ya existe`
+            )
+        }
+
         const now = new Date();
         return this.authorRepository.create({
             name,

@@ -2,31 +2,39 @@ import { Request, Response } from "express";
 import { LoanService } from "./loan.service";
 
 export class LoanController {
-    private readonly loanService = new LoanService();
+  private loanService: LoanService;
 
-    create = async (req: Request, res: Response): Promise<void> => {
-        const loan = await this.loanService.create(req.body);
-        res.status(201).json(loan);
-    };
+  constructor() {
+    this.loanService = new LoanService();
+  }
 
-    findAll = async (req: Request, res: Response): Promise<void> => {
-        const activeOnly = req.query.active === "true";
-        const loans = await this.loanService.findAll(activeOnly);
-        res.status(200).json(loans);
-    };
+  create = async (req: Request, res: Response) => {
+    const loan = await this.loanService.create(req.body);
 
-    findById = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
-        const loan = await this.loanService.findById(req.params.id);
-        res.status(200).json(loan);
-    };
+    res.status(201).json(loan);
+  };
 
-    update = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
-        const loan = await this.loanService.update(req.params.id, req.body);
-        res.status(200).json(loan);
-    };
+  findAll = async (_req: Request, res: Response) => {
+    const loans = await this.loanService.findAll();
 
-    delete = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
-        await this.loanService.delete(req.params.id);
-        res.status(204).send();
-    };
+    res.status(200).json(loans);
+  };
+
+  findById = async (req: Request<{ id: string }>, res: Response) => {
+    const loan = await this.loanService.findById(req.params.id);
+
+    res.status(200).json(loan);
+  };
+
+  returnLoan = async (req: Request<{ id: string }>, res: Response) => {
+    const loan = await this.loanService.returnLoan(req.params.id);
+
+    res.status(200).json(loan);
+  };
+
+  delete = async (req: Request<{ id: string }>, res: Response) => {
+    await this.loanService.delete(req.params.id);
+
+    res.status(204).send();
+  };
 }
