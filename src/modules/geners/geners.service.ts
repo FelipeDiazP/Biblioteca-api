@@ -32,12 +32,6 @@ export class GenersService {
         return this.genersRepository.findAll(filter);
     }
 
-    async findById(id: string): Promise<Genres> {
-        const geners = await this.genersRepository.findById(this.toObjectId(id));
-        if (!geners) throw new NotFoundError("Genero no encontrado");
-        return geners;
-    }
-
     async update(id: string, data: GenresDTO): Promise<Genres> {
         const objectId = this.toObjectId(id);
         const changes: Partial<Genres> = {};
