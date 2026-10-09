@@ -3,22 +3,22 @@ import { BookController } from "./book.controller";
 import { asyncHandler } from "../../shared/middlewares/asyncHandler";
 
 const router = Router();
-const controller = new BookController();
+const controller = new GenersController();
 
 /**
  * @swagger
  * tags:
- *   name: Books
+ *   name: geners
  *   description: Gestión de libros de la biblioteca
  */
 
 /**
  * @swagger
- * /api/v1/books:
+ * /api/v1/geners:
  *   post:
  *     summary: Crear un nuevo libro
  *     tags:
- *       - Books
+ *       - Geners
  *     requestBody:
  *       required: true
  *       content:
@@ -105,42 +105,6 @@ router.post("/", asyncHandler(controller.create));
  *                 updatedAt: "2026-09-27T15:05:00.000Z"
  */
 router.get("/", asyncHandler(controller.findAll));
-
-/**
- * @swagger
- * /api/v1/books/{id}:
- *   get:
- *     summary: Obtener un libro por ID
- *     tags:
- *       - Books
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID del libro
- *         schema:
- *           type: string
- *         example: "66abc123456def789"
- *     responses:
- *       200:
- *         description: Libro encontrado
- *         content:
- *           application/json:
- *             example:
- *               _id: "66abc123456def789"
- *               title: "Cien años de soledad"
- *               isbn: "9780307474728"
- *               authorId: "66f123abc456def789"
- *               year: 1967
- *               available: true
- *               createdAt: "2026-09-27T15:00:00.000Z"
- *               updatedAt: "2026-09-27T15:00:00.000Z"
- *       400:
- *         description: ID inválido
- *       404:
- *         description: Libro no encontrado
- */
-router.get("/:id", asyncHandler(controller.findById));
 
 /**
  * @swagger
