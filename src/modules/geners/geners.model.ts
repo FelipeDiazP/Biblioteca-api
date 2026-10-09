@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+
 export interface Genres {
     _id?: ObjectId;
     name: string;

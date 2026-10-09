@@ -1,6 +1,6 @@
 import { Collection, ObjectId } from "mongodb";
 import { getDb } from "../../config/database";
-import { Book } from "./book.model";
+import { Genres } from "./geners.model";
 
 export class GenersRepository {
     private collection(): Collection<Genres> {
