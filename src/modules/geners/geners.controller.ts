@@ -15,11 +15,6 @@ export class GenersController {
         res.status(200).json(geners);
     };
 
-    findById = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
-        const geners = await this.genersService.findById(req.params.id);
-        res.status(200).json(geners);
-    };
-
     update = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
         const geners = await this.genersService.update(req.params.id, req.body);
         res.status(200).json(geners);
