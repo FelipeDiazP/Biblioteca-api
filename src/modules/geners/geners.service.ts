@@ -11,6 +11,8 @@ export class GenersService {
         const name = this.requireString(data?.name, "name");
         const description = this.requireString(data?.description, "description");
 
+        const geners = await getDb().collection("geners");
+
         const name = this.requireString(data?.name, "name");
 
         const now = new Date();
@@ -32,7 +34,7 @@ export class GenersService {
 
     async findById(id: string): Promise<Genres> {
         const geners = await this.genersRepository.findById(this.toObjectId(id));
-        if (!book) throw new NotFoundError("Genero no encontrado");
+        if (!geners) throw new NotFoundError("Genero no encontrado");
         return geners;
     }
 
